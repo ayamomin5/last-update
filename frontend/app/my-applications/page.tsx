@@ -30,7 +30,7 @@ interface Application {
 
 const MyApplications = () => {
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState('pending');
+  const [selectedCategory, setSelectedCategory] = useState('under_review');
   const [detailsVisible, setDetailsVisible] = useState<number | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,12 +66,14 @@ const MyApplications = () => {
     fetchApplications();
   }, []);
 
-  const categories = ['pending', 'interview', 'accepted', 'rejected'];
+  const categories = ['under_review', 'interview', 'accepted', 'rejected'];
 
   // Function to get a user-friendly display name for each status
   const getStatusDisplayName = (status: string) => {
     switch (status) {
       case 'pending': return 'Applied';
+      case 'under_review': return 'Under Review';
+      case 'reviewing': return 'Under Review';
       case 'interview': return 'Interview Scheduled';
       case 'accepted': return 'Accepted';
       case 'rejected': return 'Not Accepted';
@@ -79,7 +81,12 @@ const MyApplications = () => {
     }
   };
 
-  const filteredApplications = applications.filter(app => app.status === selectedCategory);
+  const filteredApplications = applications.filter(app => {
+    if (selectedCategory === 'under_review') {
+      return app.status === 'under_review' || app.status === 'reviewing';
+    }
+    return app.status === selectedCategory;
+  });
 
   const toggleDetails = (index: number) => {
     setDetailsVisible(detailsVisible === index ? null : index);
@@ -229,7 +236,7 @@ const MyApplications = () => {
                   <div key={application._id || `app-${index}`} className="bg-white dark:bg-gray-800 border border-blue-300 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1">
                     <div className="flex items-center mb-4">
                       {application.status === "pending" && <Briefcase className="w-6 h-6 text-blue-500 mr-2" />}
-                      {application.status === "reviewing" && <Briefcase className="w-6 h-6 text-yellow-500 mr-2" />}
+                      {(application.status === "reviewing" || application.status === "under_review") && <Briefcase className="w-6 h-6 text-yellow-500 mr-2" />}
                       {application.status === "interview" && <Calendar className="w-6 h-6 text-yellow-500 mr-2" />}
                       {application.status === "accepted" && <CheckCircle className="w-6 h-6 text-green-500 mr-2" />}
                       {application.status === "rejected" && <XCircle className="w-6 h-6 text-red-500 mr-2" />}

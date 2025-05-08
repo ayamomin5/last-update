@@ -18,6 +18,7 @@ export default function CompanyDashboard() {
   const [loading, setLoading] = useState(true);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [newApplications, setNewApplications] = useState<number>(0);
+  const [underReviewApplications, setUnderReviewApplications] = useState<number>(0);
   
   // Stats state
   const [stats, setStats] = useState({
@@ -41,13 +42,27 @@ export default function CompanyDashboard() {
         return;
       }
 
-      const [profileData, { opportunities, stats }] = await Promise.all([
+      const [profileData, { opportunities, stats }, applications] = await Promise.all([
         getCompanyProfile(token),
-        getCompanyOpportunities(token)
+        getCompanyOpportunities(token),
+        getCompanyApplications(token)
       ]);
       
       setProfile(profileData);
       setOpportunities(opportunities);
+      
+      // Count applications with under_review status
+      const underReviewCount = Array.isArray(applications) 
+        ? applications.filter((app: any) => app.status === 'under_review').length 
+        : 0;
+      setUnderReviewApplications(underReviewCount);
+      
+      // Count new applications
+      const newCount = Array.isArray(applications)
+        ? applications.filter((app: any) => app.status === 'pending' || app.status === 'new').length
+        : 0;
+      setNewApplications(newCount);
+      
       if (stats) {
         setStats({
           activePostings: stats.activePostings || 0,
@@ -80,56 +95,6 @@ export default function CompanyDashboard() {
 
   // Fetch company profile, opportunities, and stats
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          toast({
-            title: "Error",
-            description: "Please login to continue",
-            variant: "destructive"
-          });
-          router.push('/login');
-          return;
-        }
-  
-        const [profileData, { opportunities, stats }] = await Promise.all([
-          getCompanyProfile(token),
-          getCompanyOpportunities(token)
-        ]);
-  
-        setProfile(profileData);
-        setOpportunities(opportunities);
-        if (stats) {
-          setStats({
-            activePostings: stats.activePostings || 0,
-            totalApplications: stats.totalApplications || 0,
-            interviewsScheduled: stats.interviewsScheduled || 0,
-            acceptedApplications: stats.acceptedApplications || 0,
-            rejectedApplications: stats.rejectedApplications || 0,
-          });
-        } else {
-          // Fallback if stats not provided
-          setStats({
-            activePostings: opportunities.filter((opp: any) => opp.status === 'active').length,
-            totalApplications: opportunities.reduce((sum: number, opp: any) => sum + (opp.applicants?.length || 0), 0),
-            interviewsScheduled: 0,
-            acceptedApplications: 0,
-            rejectedApplications: 0
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching company data:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load company data",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-  
     fetchData();
   }, [router, toast]);
   
@@ -152,24 +117,6 @@ export default function CompanyDashboard() {
   useEffect(() => {
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const fetchNewApplications = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        const apps = await getCompanyApplications(token);
-        // Only count student applications with status 'pending' or 'new'
-        const newCount = Array.isArray(apps)
-          ? apps.filter((app: any) => app.status === 'pending' || app.status === 'new').length
-          : 0;
-        setNewApplications(newCount);
-      } catch (err) {
-        setNewApplications(0);
-      }
-    };
-    fetchNewApplications();
   }, []);
 
   const handleReviewApplication = (applicationId: number) => {

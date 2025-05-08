@@ -54,16 +54,34 @@ export default function ScheduleInterviews() {
       const fetchApps = async () => {
         try {
           const token = localStorage.getItem('token');
-          if (!token) return;
+          if (!token) {
+            router.push('/login');
+            return;
+          }
+          
           const apps = await getCompanyApplications(token);
-          setApplications(apps.filter((a: any) => a.status === 'under_review'));
+          
+          // Log the applications received for debugging
+          console.log('All applications:', apps);
+          
+          // Filter to only show applications with under_review status
+          const filteredApps = Array.isArray(apps) 
+            ? apps.filter((a: any) => a.status === 'under_review')
+            : [];
+            
+          console.log('Filtered under_review apps:', filteredApps);
+          
+          setApplications(filteredApps);
+        } catch (error) {
+          console.error('Error fetching applications:', error);
+          setApplications([]);
         } finally {
           setAppListLoading(false);
         }
       };
       fetchApps();
     }
-  }, [applicationId]);
+  }, [applicationId, router]);
 
   useEffect(() => {
     const fetchApplication = async () => {
@@ -191,12 +209,22 @@ export default function ScheduleInterviews() {
                           <span>Applied: {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'N/A'}</span>
                         </div>
                       </div>
-                      <Button
-                        onClick={() => router.push(`/dashboard/company/schedule-interviews?applicationId=${app.id}`)}
-                        className="bg-[#6930c3] hover:bg-[#5e60ce] dark:bg-[#b185db] dark:hover:bg-[#9d4edd] text-white px-8 py-3 rounded-lg font-semibold transform transition-all duration-300 hover:scale-105"
-                      >
-                        Schedule Interview
-                      </Button>
+                      <div className="flex flex-col md:flex-row gap-2">
+                        <Button
+                          onClick={() => router.push(`/dashboard/company/review-application/${app.id}`)}
+                          className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-6 py-2 rounded-lg font-medium transform transition-all duration-300 hover:scale-105"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Review Application
+                        </Button>
+                        <Button
+                          onClick={() => router.push(`/dashboard/company/schedule-interviews?applicationId=${app.id}`)}
+                          className="bg-[#6930c3] hover:bg-[#5e60ce] dark:bg-[#b185db] dark:hover:bg-[#9d4edd] text-white px-6 py-2 rounded-lg font-semibold transform transition-all duration-300 hover:scale-105"
+                        >
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Schedule Interview
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}

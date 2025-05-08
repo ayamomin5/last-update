@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
-import { ArrowLeft, Calendar, Clock, Monitor, ExternalLink, MapPin, Check, X } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Monitor, ExternalLink, MapPin, Check, X, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -108,7 +108,14 @@ export default function ScheduledInterviewsPage() {
                       <span>{interview.interview.type === 'in-person' ? 'In-Person' : 'Virtual'}</span>
                     </div>
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap gap-4">
+                    <Button
+                      variant="outline"
+                      className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      onClick={() => router.push(`/dashboard/company/review-application/${interview.id}`)}
+                    >
+                      <FileText className="w-4 h-4 mr-2" /> Review Application
+                    </Button>
                     <Button
                       variant="outline"
                       className="bg-green-100 text-green-800 hover:bg-green-200 border-green-300"
