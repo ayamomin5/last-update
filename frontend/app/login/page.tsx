@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   // Set the role from URL parameter when component mounts
   useEffect(() => {
-    const roleParam = searchParams.get('role') as 'student' | 'company' | null;
+    const roleParam = searchParams?.get('role') as 'student' | 'company' | null;
     if (roleParam) {
       setRole(roleParam);
     }

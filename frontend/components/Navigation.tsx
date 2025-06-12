@@ -144,6 +144,8 @@ const Navigation = () => {
     // Perform logout logic here (e.g., clear tokens, etc.)
     // Redirect to home page after logout
     router.push('/');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   // Theme toggle button component
